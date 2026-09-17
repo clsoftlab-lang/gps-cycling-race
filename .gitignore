@@ -1,0 +1,17 @@
+# dependencies (none required — no-build static app)
+node_modules/
+
+# logs & os cruft
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# editor
+.vscode/
+.idea/
+*.swp
+
+# local scratch
+/tmp/
+*.tmp

@@ -1,0 +1,148 @@
+{
+  "_license": "SPDX-License-Identifier: Apache-2.0 — Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)",
+  "_note": "DEMO DATA ONLY. Courses are fictional schematic tracks, not real GPS routes. Ghost pace curves are simulated.",
+  "courses": [
+    {
+      "id": "hangang-loop",
+      "name": "한강 라이트 루프",
+      "nameEn": "Hangang Light Loop",
+      "lengthKm": 6.0,
+      "difficulty": "쉬움",
+      "difficultyEn": "Easy",
+      "terrain": "평지 강변",
+      "shapeSeed": 101,
+      "color": "#38bdf8",
+      "desc": "강바람 맞으며 달리는 완만한 입문 코스. 오르막이 거의 없어 초보에게 딱.",
+      "segments": [
+        { "frac": 0.25, "factor": 1.02 },
+        { "frac": 0.25, "factor": 1.0 },
+        { "frac": 0.25, "factor": 0.98 },
+        { "frac": 0.25, "factor": 1.05 }
+      ],
+      "ghosts": [
+        { "id": "g1", "name": "봄이", "kind": "ai", "color": "#f97316", "baseKmh": 24, "grit": 0.5 },
+        { "id": "g2", "name": "라이언", "kind": "ai", "color": "#22c55e", "baseKmh": 26, "grit": 0.6 },
+        { "id": "g3", "name": "제트", "kind": "pacer", "color": "#a78bfa", "baseKmh": 27.5, "grit": 0.7 }
+      ]
+    },
+    {
+      "id": "gangbyeon-sprint",
+      "name": "강변북로 스프린트",
+      "nameEn": "Gangbyeon Sprint",
+      "lengthKm": 4.2,
+      "difficulty": "보통",
+      "difficultyEn": "Medium",
+      "terrain": "고속 직선",
+      "shapeSeed": 202,
+      "color": "#f43f5e",
+      "desc": "짧고 빠른 전력 코스. 평균 속도를 얼마나 끌어올릴 수 있는지가 관건.",
+      "segments": [
+        { "frac": 0.2, "factor": 1.0 },
+        { "frac": 0.3, "factor": 1.08 },
+        { "frac": 0.3, "factor": 1.1 },
+        { "frac": 0.2, "factor": 1.12 }
+      ],
+      "ghosts": [
+        { "id": "g1", "name": "번개", "kind": "ai", "color": "#eab308", "baseKmh": 31, "grit": 0.7 },
+        { "id": "g2", "name": "스톰", "kind": "ai", "color": "#06b6d4", "baseKmh": 33, "grit": 0.75 },
+        { "id": "g3", "name": "블레이즈", "kind": "rival", "color": "#ef4444", "baseKmh": 34.5, "grit": 0.8 }
+      ]
+    },
+    {
+      "id": "namsan-climb",
+      "name": "남산 힐클라임",
+      "nameEn": "Namsan Hill Climb",
+      "lengthKm": 3.4,
+      "difficulty": "어려움",
+      "difficultyEn": "Hard",
+      "terrain": "연속 오르막",
+      "shapeSeed": 303,
+      "color": "#84cc16",
+      "desc": "숨이 턱까지 차는 오르막의 연속. 그릿(근성)이 승부를 가른다.",
+      "segments": [
+        { "frac": 0.25, "factor": 0.9 },
+        { "frac": 0.25, "factor": 0.78 },
+        { "frac": 0.3, "factor": 0.7 },
+        { "frac": 0.2, "factor": 0.85 }
+      ],
+      "ghosts": [
+        { "id": "g1", "name": "클라이머K", "kind": "ai", "color": "#10b981", "baseKmh": 22, "grit": 0.9 },
+        { "id": "g2", "name": "산양", "kind": "ai", "color": "#f59e0b", "baseKmh": 21, "grit": 0.95 },
+        { "id": "g3", "name": "정상지기", "kind": "rival", "color": "#059669", "baseKmh": 23.5, "grit": 0.88 }
+      ]
+    },
+    {
+      "id": "olympic-velo",
+      "name": "올림픽 벨로드롬",
+      "nameEn": "Olympic Velodrome",
+      "lengthKm": 5.0,
+      "difficulty": "보통",
+      "difficultyEn": "Medium",
+      "terrain": "전용 트랙",
+      "shapeSeed": 404,
+      "color": "#a855f7",
+      "desc": "차량 걱정 없는 전용 순환 트랙. 일정한 페이스 유지가 핵심.",
+      "segments": [
+        { "frac": 0.25, "factor": 1.04 },
+        { "frac": 0.25, "factor": 1.02 },
+        { "frac": 0.25, "factor": 1.04 },
+        { "frac": 0.25, "factor": 1.06 }
+      ],
+      "ghosts": [
+        { "id": "g1", "name": "휠러", "kind": "ai", "color": "#c084fc", "baseKmh": 28, "grit": 0.65 },
+        { "id": "g2", "name": "트랙마스터", "kind": "ai", "color": "#818cf8", "baseKmh": 30, "grit": 0.7 },
+        { "id": "g3", "name": "페이스봇", "kind": "pacer", "color": "#7c3aed", "baseKmh": 29, "grit": 0.72 },
+        { "id": "g4", "name": "은륜", "kind": "rival", "color": "#d946ef", "baseKmh": 31, "grit": 0.74 }
+      ]
+    },
+    {
+      "id": "bukhan-river",
+      "name": "북한강 롱라이드",
+      "nameEn": "Bukhan River Long Ride",
+      "lengthKm": 12.0,
+      "difficulty": "어려움",
+      "difficultyEn": "Hard",
+      "terrain": "장거리 기복",
+      "shapeSeed": 505,
+      "color": "#0ea5e9",
+      "desc": "체력 배분이 전부인 장거리 코스. 중반 오르막 이후 후반 평지 스퍼트.",
+      "segments": [
+        { "frac": 0.2, "factor": 1.02 },
+        { "frac": 0.2, "factor": 0.92 },
+        { "frac": 0.2, "factor": 0.82 },
+        { "frac": 0.2, "factor": 1.0 },
+        { "frac": 0.2, "factor": 1.08 }
+      ],
+      "ghosts": [
+        { "id": "g1", "name": "롱디", "kind": "ai", "color": "#38bdf8", "baseKmh": 26, "grit": 0.8 },
+        { "id": "g2", "name": "지구력", "kind": "ai", "color": "#2dd4bf", "baseKmh": 27, "grit": 0.85 },
+        { "id": "g3", "name": "강철허벅지", "kind": "rival", "color": "#0284c7", "baseKmh": 28.5, "grit": 0.82 }
+      ]
+    },
+    {
+      "id": "seaside-crit",
+      "name": "해안도로 크리테리움",
+      "nameEn": "Seaside Criterium",
+      "lengthKm": 7.5,
+      "difficulty": "보통",
+      "difficultyEn": "Medium",
+      "terrain": "코너 반복",
+      "shapeSeed": 606,
+      "color": "#f59e0b",
+      "desc": "코너가 많은 순환 코스. 코너 탈출 가속과 순위 다툼이 치열하다.",
+      "segments": [
+        { "frac": 0.2, "factor": 1.05 },
+        { "frac": 0.2, "factor": 0.95 },
+        { "frac": 0.2, "factor": 1.06 },
+        { "frac": 0.2, "factor": 0.96 },
+        { "frac": 0.2, "factor": 1.08 }
+      ],
+      "ghosts": [
+        { "id": "g1", "name": "코너킹", "kind": "ai", "color": "#fb923c", "baseKmh": 27, "grit": 0.68 },
+        { "id": "g2", "name": "파도", "kind": "ai", "color": "#38bdf8", "baseKmh": 28.5, "grit": 0.7 },
+        { "id": "g3", "name": "갈매기", "kind": "ai", "color": "#facc15", "baseKmh": 29, "grit": 0.66 },
+        { "id": "g4", "name": "해풍", "kind": "rival", "color": "#ea580c", "baseKmh": 30, "grit": 0.73 }
+      ]
+    }
+  ]
+}

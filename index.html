@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: Apache-2.0
+  Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)
+-->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="description" content="GPS 기반 사이클링 경쟁 데모 — 코스 위에서 고스트/AI 라이더와 실시간 순위 대결. Demo-mode racing sim." />
+  <title>GhostPace — GPS 사이클링 레이스</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%9A%B4%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-theme="dark">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🚴</span>
+      <div>
+        <h1>GhostPace</h1>
+        <p class="tag">GPS 사이클링 레이스 · <b>DEMO MODE</b></p>
+      </div>
+    </div>
+    <nav class="topnav">
+      <button class="nav-btn" data-go="courses">코스</button>
+      <button class="nav-btn" data-go="profile">프로필</button>
+      <button id="theme-toggle" class="nav-btn ghost" title="테마 전환">🌙</button>
+    </nav>
+  </header>
+
+  <main id="app">
+    <!-- ============ COURSE SELECT ============ -->
+    <section id="screen-courses" class="screen active" aria-label="코스 선택">
+      <div class="screen-head">
+        <h2>코스 선택</h2>
+        <p class="muted">코스를 골라 고스트/AI 라이더와 실시간으로 순위를 다투세요.</p>
+      </div>
+      <div id="course-list" class="course-list"><!-- populated by app.js --></div>
+    </section>
+
+    <!-- ============ RACE ============ -->
+    <section id="screen-race" class="screen" aria-label="레이스">
+      <div class="race-top">
+        <button class="nav-btn ghost small" data-go="courses">← 코스</button>
+        <h2 id="race-title">레이스</h2>
+        <span id="race-tier" class="tier-pill">Bronze</span>
+      </div>
+
+      <div class="race-grid">
+        <div class="track-wrap">
+          <svg id="track-svg" class="track-svg" role="img" aria-label="코스 트랙"></svg>
+          <div id="voice-line" class="voice-line" aria-live="polite"></div>
+        </div>
+
+        <aside class="race-side">
+          <div id="hud" class="hud">
+            <div class="hud-cell big"><span class="k">순위</span><b id="hud-rank">–</b></div>
+            <div class="hud-cell"><span class="k">속도</span><b id="hud-speed">0</b><i>km/h</i></div>
+            <div class="hud-cell"><span class="k">경과</span><b id="hud-time">00:00.0</b></div>
+            <div class="hud-cell"><span class="k">거리</span><b id="hud-dist">0.00</b><i>km</i></div>
+            <div class="hud-cell gap ahead"><span class="k">앞 라이더 ▲</span><b id="hud-ahead">–</b></div>
+            <div class="hud-cell gap behind"><span class="k">뒤 라이더 ▼</span><b id="hud-behind">–</b></div>
+            <div class="hud-cell"><span class="k">심박(mock)</span><b id="hud-hr">–</b><i>bpm</i></div>
+            <div class="hud-cell"><span class="k">케이던스(mock)</span><b id="hud-cad">–</b><i>rpm</i></div>
+          </div>
+
+          <ol id="standings" class="standings" aria-label="실시간 순위"></ol>
+        </aside>
+      </div>
+
+      <div class="controls">
+        <label class="slider-label">
+          <span>내 속도 <b id="speed-val">28</b> km/h</span>
+          <input id="speed-slider" type="range" min="0" max="45" value="28" step="0.5" aria-label="속도 조절" />
+        </label>
+        <div class="ctrl-btns">
+          <button id="btn-start" class="btn primary">▶ 출발</button>
+          <button id="btn-auto" class="btn">🤖 오토페이스</button>
+          <button id="btn-reset" class="btn ghost">↺ 리셋</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RESULT ============ -->
+    <section id="screen-result" class="screen" aria-label="결과">
+      <div class="screen-head"><h2>결과</h2></div>
+      <div id="result-card" class="result-card"></div>
+      <div class="lb-head"><h3>코스 리더보드</h3></div>
+      <ol id="leaderboard" class="leaderboard"></ol>
+      <div class="ctrl-btns center">
+        <button class="btn primary" data-go="race" id="btn-again">↺ 다시 레이스</button>
+        <button class="btn ghost" data-go="courses">코스 목록</button>
+      </div>
+    </section>
+
+    <!-- ============ PROFILE ============ -->
+    <section id="screen-profile" class="screen" aria-label="프로필">
+      <div class="screen-head"><h2>프로필</h2></div>
+      <div id="profile" class="profile"></div>
+      <div class="ctrl-btns">
+        <button id="btn-wipe" class="btn danger ghost">데이터 초기화</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p><b>DEMO MODE</b> — 실제 GPS·멀티플레이어 아님. 시뮬레이션 고스트/AI + localStorage 기록. Not an official Anthropic product.</p>
+    <p class="muted">© 2026 CLSOFTLAB (씨엘소프트랩) · Apache-2.0</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

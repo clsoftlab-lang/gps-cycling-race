@@ -1,0 +1,17 @@
+{
+  "name": "gps-cycling-race",
+  "version": "1.0.0",
+  "description": "GhostPace — GPS-based cycling race demo (single-player vs deterministic ghosts). DEMO MODE.",
+  "type": "module",
+  "private": true,
+  "license": "Apache-2.0",
+  "scripts": {
+    "check": "node check.mjs",
+    "serve": "python -m http.server 8993"
+  },
+  "author": "CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clsoftlab-lang/gps-cycling-race"
+  }
+}
