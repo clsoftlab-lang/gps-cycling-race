@@ -14,6 +14,13 @@
 //   'coach'      — AI 라이딩 코치: pacing/training advice for a course + results
 //   'commentary' — 레이스 결과 분석/코멘터리: narrate a finished race
 //   'recommend'  — 코스 추천: suggest a course by goal/level
+//   'digest'     — 오늘의 추천 코스 + 코치 목표: on-load autonomous briefing
+//
+// AUTO-FALLBACK (무인): if the real endpoint fails, returns HTTP 429
+// {fallback:true} (rate limit / monthly budget), or errors on the network BEFORE
+// any token has streamed, askAI silently falls back to the offline mock so the
+// app never breaks. (If failure happens mid-stream, the partial real answer is
+// kept and the error surfaces — the mock is not appended, to avoid garbling.)
 //
 // The API key is NEVER handled here. Real calls go to the server proxy only.
 
@@ -27,11 +34,21 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export async function askAI(task, payload = {}, { onToken } = {}) {
   const endpoint = (AI_ENDPOINT || '').trim();
   if (!endpoint) return mockAnswer(task, payload, onToken);
-  return realAnswer(endpoint, task, payload, onToken);
+
+  let started = false;
+  const guarded = onToken ? (t) => { started = true; onToken(t); } : undefined;
+  try {
+    return await realAnswer(endpoint, task, payload, guarded);
+  } catch (e) {
+    // Nothing streamed yet (429 {fallback:true}, network error, non-OK) →
+    // auto-fallback to the deterministic offline mock so the app never breaks.
+    if (!started) return mockAnswer(task, payload, onToken);
+    throw e; // already mid-stream: keep the partial real answer, surface the error
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Real backend (streaming text/plain from server/index.mjs)
+// Real backend (streaming text/plain from server/index.mjs or worker.js)
 // ---------------------------------------------------------------------------
 async function realAnswer(endpoint, task, payload, onToken) {
   const res = await fetch(endpoint, {
@@ -40,6 +57,7 @@ async function realAnswer(endpoint, task, payload, onToken) {
     body: JSON.stringify({ task, payload }),
   });
   if (!res.ok) {
+    // 429 {fallback:true} and any other non-OK bubble up → askAI falls back to mock.
     const detail = await res.text().catch(() => '');
     throw new Error(`AI 서버 오류 (${res.status}) ${detail}`.trim());
   }
@@ -97,9 +115,52 @@ function buildMock(task, payload) {
   switch (task) {
     case 'commentary': return mockCommentary(payload);
     case 'recommend':  return mockRecommend(payload);
+    case 'digest':     return mockDigest(payload);
     case 'coach':
     default:           return mockCoach(payload);
   }
+}
+
+// ---- (AUTO) 오늘의 추천 코스 + 코치 목표 -------------------------------------
+// On-load autonomous briefing, grounded in the app's real courses + best times.
+// Deterministic, offline — the app "runs itself" even with no network / no key.
+function mockDigest(p) {
+  const courses = Array.isArray(p.courses) ? p.courses : [];
+  const bests = p.bests || {};
+  const tier = p.tier || 'Bronze';
+  const runs = p.runs || 0;
+  const lines = [];
+
+  lines.push('☀️ 오늘의 라이딩 브리핑 (데모)');
+  lines.push('');
+  if (!courses.length) { lines.push('코스 데이터를 불러오는 중입니다.'); return lines.join('\n'); }
+
+  // Level inferred from how much you've ridden; nudge toward un-raced courses.
+  const level = runs >= 8 ? 'advanced' : runs >= 3 ? 'intermediate' : 'beginner';
+  const scored = courses.map((c) => {
+    const prof = climbProfile(c);
+    let score = 2 - Math.abs((c.lengthKm || 5) - 5) / 5; // balanced length preference
+    if (level === 'beginner') score += c.difficultyEn === 'Easy' ? 2 : c.difficultyEn === 'Medium' ? 1 : 0;
+    else if (level === 'intermediate') score += c.difficultyEn === 'Medium' ? 2 : 1;
+    else score += c.difficultyEn === 'Hard' ? 2 : 1;
+    if (!bests[c.id]) score += 0.8; // prefer a course you haven't set a time on
+    return { c, prof, score };
+  }).sort((a, b) => b.score - a.score);
+
+  const { c, prof } = scored[0];
+  const raced = !!bests[c.id];
+  lines.push(`오늘의 추천 코스: ${c.name} (${c.difficulty}, ${c.lengthKm}km, ${c.terrain})`);
+  lines.push(prof.climb
+    ? '  오르막 비중이 커서 근성(grit) 훈련에 좋은 날입니다.'
+    : '  꾸준한 순항 페이스로 평균 속도를 끌어올리기 좋습니다.');
+  lines.push('');
+  lines.push(raced
+    ? `코치 목표: 이 코스 베스트 ${fmt(bests[c.id].time)} 대비 3~5% 단축에 도전하세요.`
+    : '코치 목표: 첫 주행은 완주를 목표로 페이스를 낮게 잡고 구간 감각을 익히세요.');
+  lines.push(`현재 티어 ${tier} · 누적 ${runs} 레이스. 오늘 1회 완주로 기록을 남겨 보세요.`);
+  lines.push('');
+  lines.push('— GhostPace AI 브리핑 (DEMO · 모의 응답)');
+  return lines.join('\n');
 }
 
 // ---- (1) AI 라이딩 코치 -----------------------------------------------------

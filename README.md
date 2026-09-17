@@ -74,7 +74,7 @@ All rider names, courses, and leaderboard entries are **fictional demo data**.
 
 ## 🤖 AI 기능 (API 연동)
 
-GhostPace ships a **secure, pluggable AI layer** with three features:
+GhostPace ships a **secure, pluggable AI layer** with four features:
 
 1. **AI 라이딩 코치 챗봇** (race screen) — pacing & training advice grounded in the
    chosen course's segment profile and your own best time / tier, plus live gap
@@ -82,8 +82,11 @@ GhostPace ships a **secure, pluggable AI layer** with three features:
 2. **레이스 결과 분석/코멘터리** (result screen) — narrates a finished race from its
    splits, final rank, gaps, and points breakdown.
 3. **코스 추천** (course-select screen) — suggests a course by your goal & level.
+4. **오늘의 추천 코스 + 코치 목표** (course-select screen) — an **autonomous, on-load**
+   briefing built from your courses + best times. It generates itself when the app
+   opens and works offline via the mock.
 
-**Demo = mock (default).** With `ai/config.js` → `AI_ENDPOINT = ""`, all three run
+**Demo = mock (default).** With `ai/config.js` → `AI_ENDPOINT = ""`, all four run
 against a **deterministic Korean MockProvider** (`ai/ai.js`) built from the app's
 own courses / race data / best times. No network, no account, no key.
 
@@ -96,14 +99,59 @@ npm install && npm run start:env
 ```
 
 then set `ai/config.js` → `AI_ENDPOINT = "http://localhost:8787/api/ai"` and
-reload. The proxy calls Claude (model **`claude-opus-5`**, adaptive thinking,
-streamed) and pipes the reply back token-by-token.
+reload. The proxy calls Claude (default model **`claude-haiku-4-5`**, streamed) and
+pipes the reply back token-by-token. See the 고도화 section below for the
+cost-efficient / free-hosting / autonomous details.
 
-> **🔒 Keys are server-side ONLY.** The `ANTHROPIC_API_KEY` lives exclusively in
-> `server/.env` (`process.env.ANTHROPIC_API_KEY`) and is **never** placed in the
-> browser, in `ai/config.js`, or anywhere in the repo. `.env` is git-ignored, and
-> `node check.mjs` scans the source for a real key format and fails if one is ever
-> committed.
+> **🔒 Keys are server-side ONLY — never in the browser or repo.** The
+> `ANTHROPIC_API_KEY` lives exclusively in `server/.env`
+> (`process.env.ANTHROPIC_API_KEY`) or the Cloudflare Worker secret, and is
+> **never** placed in the browser, in `ai/config.js`, or anywhere in the repo.
+> `.env` is git-ignored, and `node check.mjs` scans the source for a real key
+> format and fails if one is ever committed.
+
+## ⚙️ 고도화 — 무인·저비용 실 AI 연동
+
+The AI layer is tuned to run **unmanned (무인)** and **cost-efficiently (저비용)**
+on **real Claude**, while never breaking.
+
+**Cost model.** Default model **`claude-haiku-4-5`** (**$1 / MTok input, $5 / MTok
+output**), configurable via `AI_MODEL` (raise to `claude-sonnet-5` / `claude-opus-5`
+for higher quality). On top of that:
+
+- **Prompt caching** — the stable per-task system prompt is sent as a
+  `cache_control:{type:'ephemeral'}` block, so repeated calls read it from cache
+  and pay far less on input.
+- **Output caps** — a modest per-task `max_tokens` (~400–700).
+- **Thinking only where it helps** — Haiku sends no `thinking`/effort (it rejects
+  them, avoiding 400s); larger models get `thinking:{type:'adaptive'}` +
+  `output_config:{effort}`.
+- **Budget + rate limit** — a per-IP rate limit (`AI_RATE_PER_MIN`, default 20/min)
+  and a **monthly token cap** (`AI_MONTHLY_TOKEN_CAP`, default 2,000,000). Over
+  either, the backend returns **HTTP 429 `{fallback:true}`**.
+
+**Rough cost.** A typical grounded request is ~1.5K input + ~0.4K output tokens →
+about **$0.003–0.004 each**, i.e. **≈ $3–4 per 1,000 requests** on Haiku 4.5 —
+lower once prompt caching warms up.
+
+**Free, unmanned hosting.** A **Cloudflare Workers** variant
+([`server/worker.js`](server/worker.js) + [`wrangler.toml`](server/wrangler.toml))
+runs the same logic on Cloudflare's free tier — one deploy, no server to babysit:
+
+```bash
+cd server
+wrangler secret put ANTHROPIC_API_KEY   # key is a SECRET, never in the repo
+wrangler deploy
+```
+
+**Autonomous & never-breaks.** If the endpoint fails, is rate-limited, hits the
+monthly cap (`429 {fallback:true}`), or the network is down, `ai/ai.js`
+**auto-falls-back to the offline mock** — so the app keeps working with zero
+attention. The "오늘의 추천 코스 + 코치 목표" briefing generates itself on load and
+works fully offline the same way.
+
+> **🔒 API keys are server-side only — never in the browser or repo.** The key
+> lives only in `server/.env` or as the Cloudflare Worker secret.
 
 ## Contributors
 

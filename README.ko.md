@@ -74,15 +74,17 @@ python -m http.server 8993
 
 ## 🤖 AI 기능 (API 연동)
 
-GhostPace에는 **안전하고 교체 가능한 AI 레이어**가 포함되어 있으며, 세 가지 기능을 제공합니다:
+GhostPace에는 **안전하고 교체 가능한 AI 레이어**가 포함되어 있으며, 네 가지 기능을 제공합니다:
 
 1. **AI 라이딩 코치 챗봇** (레이스 화면) — 선택한 코스의 구간 프로필과 내 베스트·티어를
    근거로 페이싱·훈련 조언을 하고, 레이스 중에는 실시간 간격 코칭도 제공합니다.
 2. **레이스 결과 분석/코멘터리** (결과 화면) — 완주한 레이스의 스플릿·최종 순위·간격·
    포인트 내역을 바탕으로 중계를 생성합니다.
 3. **코스 추천** (코스 선택 화면) — 목표와 레벨에 맞는 코스를 추천합니다.
+4. **오늘의 추천 코스 + 코치 목표** (코스 선택 화면) — 내 코스·베스트 기록으로 만드는
+   **무인·온-로드 브리핑**. 앱을 열면 스스로 생성되며, 오프라인(mock)에서도 동작합니다.
 
-**데모 = mock (기본값).** `ai/config.js` → `AI_ENDPOINT = ""` 상태에서는 세 기능 모두
+**데모 = mock (기본값).** `ai/config.js` → `AI_ENDPOINT = ""` 상태에서는 네 기능 모두
 앱의 코스·레이스·베스트 데이터로 구동되는 **결정론적 한국어 MockProvider**(`ai/ai.js`)로
 동작합니다. 네트워크·계정·키가 필요 없습니다.
 
@@ -95,13 +97,54 @@ npm install && npm run start:env
 ```
 
 그 다음 `ai/config.js` → `AI_ENDPOINT = "http://localhost:8787/api/ai"`로 설정하고
-새로고침하세요. 프록시가 Claude(모델 **`claude-opus-5`**, adaptive thinking, 스트리밍)를
-호출해 응답을 토큰 단위로 되돌려줍니다.
+새로고침하세요. 프록시가 Claude(기본 모델 **`claude-haiku-4-5`**, 스트리밍)를 호출해
+응답을 토큰 단위로 되돌려줍니다. 비용·무료 호스팅·무인 상세는 아래 고도화 섹션을 참고하세요.
 
-> **🔒 키는 서버 사이드에만 둡니다.** `ANTHROPIC_API_KEY`는 오직 `server/.env`
-> (`process.env.ANTHROPIC_API_KEY`)에만 존재하며, 브라우저·`ai/config.js`·저장소 어디에도
-> **절대** 넣지 않습니다. `.env`는 git-ignore 되고, `node check.mjs`가 소스에서 실제 키
-> 형식을 검사해 커밋되면 실패시킵니다.
+> **🔒 키는 서버 사이드에만 둡니다 — 브라우저·저장소에 절대 두지 않습니다.**
+> `ANTHROPIC_API_KEY`는 오직 `server/.env`(`process.env.ANTHROPIC_API_KEY`) 또는
+> Cloudflare Worker 시크릿에만 존재하며, 브라우저·`ai/config.js`·저장소 어디에도 **절대**
+> 넣지 않습니다. `.env`는 git-ignore 되고, `node check.mjs`가 소스에서 실제 키 형식을
+> 검사해 커밋되면 실패시킵니다.
+
+## ⚙️ 고도화 — 무인·저비용 실 AI 연동
+
+AI 레이어는 **무인**으로, **저비용**으로, **실제 Claude** 위에서 절대 멈추지 않도록
+튜닝되어 있습니다.
+
+**비용 모델.** 기본 모델 **`claude-haiku-4-5`**(**입력 $1 / MTok, 출력 $5 / MTok**),
+`AI_MODEL`로 교체 가능(품질이 필요하면 `claude-sonnet-5` / `claude-opus-5`). 여기에:
+
+- **프롬프트 캐싱** — 안정적인 태스크별 시스템 프롬프트를
+  `cache_control:{type:'ephemeral'}` 블록으로 보내, 반복 호출은 캐시에서 읽어 입력 비용을
+  크게 줄입니다.
+- **출력 상한** — 태스크별 적정 `max_tokens`(~400–700).
+- **필요한 곳에만 thinking** — Haiku는 `thinking`/effort를 보내지 않고(거부하므로 400
+  방지), 상위 모델에서만 `thinking:{type:'adaptive'}` + `output_config:{effort}` 사용.
+- **예산 + 레이트 리밋** — IP별 레이트 리밋(`AI_RATE_PER_MIN`, 기본 20/분)과 **월간 토큰
+  상한**(`AI_MONTHLY_TOKEN_CAP`, 기본 2,000,000). 둘 중 하나라도 초과하면 백엔드가
+  **HTTP 429 `{fallback:true}`**를 반환합니다.
+
+**대략적 비용.** 일반적인 grounded 요청은 입력 ~1.5K + 출력 ~0.4K 토큰 → 건당 약
+**$0.003–0.004**, 즉 Haiku 4.5 기준 **1,000요청당 약 $3–4** 수준이며, 프롬프트 캐싱이
+데워지면 더 낮아집니다.
+
+**무료·무인 호스팅.** **Cloudflare Workers** 변형
+([`server/worker.js`](server/worker.js) + [`wrangler.toml`](server/wrangler.toml))이
+같은 로직을 Cloudflare 무료 티어에서 돌립니다 — 한 번 배포하면 관리할 서버가 없습니다:
+
+```bash
+cd server
+wrangler secret put ANTHROPIC_API_KEY   # 키는 시크릿, 저장소에 절대 두지 않음
+wrangler deploy
+```
+
+**무인·절대 안 멈춤.** 엔드포인트 실패·레이트 리밋·월간 상한 초과(`429 {fallback:true}`)·
+네트워크 단절 시 `ai/ai.js`가 **오프라인 mock으로 자동 폴백**하여 앱이 손 하나 대지 않아도
+계속 동작합니다. "오늘의 추천 코스 + 코치 목표" 브리핑도 같은 방식으로 로드 시 스스로
+생성되고 오프라인에서도 완전히 동작합니다.
+
+> **🔒 API 키는 서버 사이드에만 — 브라우저·저장소에 절대 두지 않습니다.** 키는 오직
+> `server/.env` 또는 Cloudflare Worker 시크릿에만 존재합니다.
 
 ## 기여자
 

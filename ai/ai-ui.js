@@ -32,6 +32,25 @@ export function initAiUi(api) {
   const getStore = api.getStore || (() => ({}));
   const getCurrent = api.getCurrent || (() => ({}));
 
+  // ---- (AUTO) 오늘의 추천 코스 + 코치 목표 (on-load, course-select screen) ----
+  // Autonomous briefing: generated automatically on load, grounded in the app's
+  // own courses + best times. Works offline via the mock (무인). Refreshable.
+  const digestOut = $('#ai-digest-out');
+  const digestBtn = $('#ai-digest-btn');
+  function digestPayload() {
+    const store = getStore();
+    return {
+      courses: getCourses(),
+      bests: store.best || {},
+      tier: api.tierFor ? api.tierFor(store.points || 0).name : undefined,
+      runs: store.runs || 0,
+      points: store.points || 0,
+    };
+  }
+  function runDigest() { if (digestOut) run(digestOut, digestBtn, 'digest', digestPayload()); }
+  if (digestBtn) digestBtn.addEventListener('click', runDigest);
+  if (digestOut) runDigest(); // autonomous: auto-generate once on load
+
   // ---- (3) 코스 추천 (course-select screen) ----
   const recBtn = $('#ai-recommend-btn');
   if (recBtn) {

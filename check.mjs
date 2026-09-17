@@ -186,8 +186,8 @@ console.log('\n[4] race-engine unit tests');
 // -------------------------------------------------------------------------
 console.log('\n[5] AI layer — syntax + security');
 
-// 5a) node --check on every AI + server source file
-for (const f of ['ai/config.js', 'ai/ai.js', 'ai/ai-ui.js', 'server/index.mjs']) {
+// 5a) node --check on every AI + server source file (incl. worker + shared tasks)
+for (const f of ['ai/config.js', 'ai/ai.js', 'ai/ai-ui.js', 'server/ai-tasks.mjs', 'server/index.mjs', 'server/worker.js']) {
   try {
     execFileSync(process.execPath, ['--check', join(ROOT, f)], { stdio: 'pipe' });
     ok(`node --check ${f}`, true);
@@ -205,7 +205,8 @@ ok('AI_ENDPOINT is empty (demo = mock)', AI_ENDPOINT === '', `got ${JSON.stringi
   const KEY_RE = new RegExp('sk-' + 'ant-[A-Za-z0-9_-]{20,}');
   const scanFiles = [
     'ai/config.js', 'ai/ai.js', 'ai/ai-ui.js',
-    'server/index.mjs', 'server/package.json', 'server/.env.example', 'server/README.md',
+    'server/ai-tasks.mjs', 'server/index.mjs', 'server/worker.js', 'server/wrangler.toml',
+    'server/package.json', 'server/.env.example', 'server/README.md',
     'README.md', 'README.ko.md',
   ];
   const leaked = [];
@@ -220,6 +221,10 @@ ok('AI_ENDPOINT is empty (demo = mock)', AI_ENDPOINT === '', `got ${JSON.stringi
   let envPresent = false;
   try { await readFile(join(ROOT, 'server', '.env'), 'utf8'); envPresent = true; } catch (e) { /* good */ }
   ok('server/.env is not committed', !envPresent, envPresent ? 'server/.env exists — do not commit it' : '');
+  // .gitignore must exclude .env so a real key can never be committed
+  let gi = '';
+  try { gi = await readFile(join(ROOT, '.gitignore'), 'utf8'); } catch (e) { /* handled below */ }
+  ok('.gitignore excludes .env', /(^|\n)\s*\.env(\r?\n|$)/.test(gi));
 }
 
 // -------------------------------------------------------------------------

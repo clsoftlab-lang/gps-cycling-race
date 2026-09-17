@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)
+#
+# Cloudflare Workers config for the GhostPace AI proxy (server/worker.js).
+# Free tier = no server to babysit (무인). The API key is a SECRET, never here:
+#   wrangler secret put ANTHROPIC_API_KEY
+# Deploy:
+#   cd server && wrangler deploy
+
+name = "ghostpace-ai"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Non-secret, cost-related overrides. The API key is set via `wrangler secret put`
+# and must NEVER be placed in this file.
+[vars]
+AI_MODEL = "claude-haiku-4-5"   # raise to claude-sonnet-5 / claude-opus-5 for quality
+AI_EFFORT = "low"               # only used for non-Haiku models
+AI_RATE_PER_MIN = "20"          # per-IP best-effort rate limit
+CORS_ORIGIN = "*"               # restrict to your site origin in production

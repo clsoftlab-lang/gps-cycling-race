@@ -13,11 +13,23 @@ MockProvider (`ai/ai.js`). The proxy is opt-in.
 
 - Exposes `POST /api/ai` accepting `{ "task", "payload" }`.
 - `task` is one of `coach` (AI 라이딩 코치), `commentary` (레이스 코멘터리),
-  `recommend` (코스 추천).
+  `recommend` (코스 추천), `digest` (오늘의 추천 코스 + 코치 목표 — on-load auto).
 - Builds a grounded Korean prompt from `payload` and calls Claude with
-  streaming (`model: claude-opus-5`, adaptive thinking), piping the text back as
-  `text/plain` so the SPA renders it token-by-token.
-- `GET /health` returns `{ ok, model, keyLoaded }`.
+  streaming, piping the text back as `text/plain` so the SPA renders it
+  token-by-token.
+- **Cost-efficient by default:** model `claude-haiku-4-5` (`AI_MODEL`), **prompt
+  caching** on the stable per-task system block, modest per-task `max_tokens`,
+  a **per-IP rate limit** and a **monthly token budget**.
+- **Thinking/effort:** Haiku 4.5 sends **no** `thinking`/effort (it rejects them);
+  raising `AI_MODEL` to `claude-sonnet-5` / `claude-opus-5` enables
+  `thinking:{type:'adaptive'}` + `output_config:{effort: AI_EFFORT}`.
+- **Guardrails → fallback:** over the rate limit or monthly cap the proxy returns
+  **HTTP 429 `{fallback:true}`**, and the frontend auto-falls-back to the offline
+  mock so the app never breaks (무인).
+- `GET /health` returns `{ ok, model, keyLoaded, monthTokens, monthlyCap }`.
+
+The task routing, prompts, model/caching rules and output caps are shared with the
+Cloudflare Worker via [`ai-tasks.mjs`](ai-tasks.mjs), so both backends stay identical.
 
 ## Setup
 
@@ -43,9 +55,34 @@ Reload the SPA and the AI panels now stream live Claude responses.
 | Variable | Required | Default | Notes |
 |---|---|---|---|
 | `ANTHROPIC_API_KEY` | ✅ | — | **Server-side only. Never commit it.** |
-| `ANTHROPIC_MODEL` | — | `claude-opus-5` | Model id |
+| `AI_MODEL` | — | `claude-haiku-4-5` | Cost-first default; raise to `claude-sonnet-5` / `claude-opus-5` |
+| `AI_EFFORT` | — | `low` | Thinking effort — non-Haiku models only |
+| `AI_MONTHLY_TOKEN_CAP` | — | `2000000` | Monthly token budget; over cap → `429 {fallback:true}` |
+| `AI_RATE_PER_MIN` | — | `20` | Per-IP requests/min; over limit → `429 {fallback:true}` |
 | `PORT` | — | `8787` | Listen port |
 | `CORS_ORIGIN` | — | `*` | Restrict to your site origin in production |
+
+## ☁️ Free deploy — Cloudflare Workers (`worker.js`, 무인)
+
+For zero-maintenance hosting on Cloudflare's free tier (no server to babysit), use
+the Worker variant. It calls the Anthropic REST API directly with the same task
+routing + model/caching rules, and the key lives ONLY as a Worker **secret**.
+
+```bash
+cd server
+npm i -g wrangler                      # once
+wrangler secret put ANTHROPIC_API_KEY  # paste your key — never in wrangler.toml/repo
+wrangler deploy                        # deploys worker.js per wrangler.toml
+```
+
+Then point the frontend at the Worker URL — in `../ai/config.js`:
+
+```js
+export const AI_ENDPOINT = "https://<your-worker>.workers.dev/api/ai";
+```
+
+Non-secret overrides (`AI_MODEL`, `AI_EFFORT`, `AI_RATE_PER_MIN`, `CORS_ORIGIN`)
+live in `wrangler.toml [vars]`. The API key does **not** — it is a secret only.
 
 ## Security
 
