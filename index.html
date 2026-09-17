@@ -36,6 +36,32 @@
         <h2>코스 선택</h2>
         <p class="muted">코스를 골라 고스트/AI 라이더와 실시간으로 순위를 다투세요.</p>
       </div>
+
+      <section class="ai-panel" id="ai-recommend" aria-label="AI 코스 추천">
+        <div class="ai-panel-head">
+          <h3>🤖 AI 코스 추천 <span class="ai-badge">DEMO · mock</span></h3>
+        </div>
+        <div class="ai-row">
+          <label class="ai-field">목표
+            <select id="ai-goal">
+              <option value="balanced">균형</option>
+              <option value="endurance">지구력</option>
+              <option value="sprint">스프린트</option>
+              <option value="climb">클라이밍</option>
+            </select>
+          </label>
+          <label class="ai-field">레벨
+            <select id="ai-level">
+              <option value="beginner">입문</option>
+              <option value="intermediate">중급</option>
+              <option value="advanced">상급</option>
+            </select>
+          </label>
+          <button id="ai-recommend-btn" class="btn primary">추천 받기</button>
+        </div>
+        <pre id="ai-recommend-out" class="ai-out" aria-live="polite"></pre>
+      </section>
+
       <div id="course-list" class="course-list"><!-- populated by app.js --></div>
     </section>
 
@@ -80,12 +106,33 @@
           <button id="btn-reset" class="btn ghost">↺ 리셋</button>
         </div>
       </div>
+
+      <section class="ai-panel" id="ai-coach" aria-label="AI 라이딩 코치">
+        <div class="ai-panel-head">
+          <h3>🤖 AI 라이딩 코치 <span class="ai-badge">DEMO · mock</span></h3>
+          <button id="ai-coach-btn" class="btn small">코칭 받기</button>
+        </div>
+        <pre id="ai-coach-out" class="ai-out" aria-live="polite"></pre>
+        <form id="ai-coach-form" class="ai-row">
+          <input id="ai-coach-input" type="text" class="ai-field grow" placeholder="예: 오르막에서 페이스 어떻게 잡죠?" aria-label="코치에게 질문" />
+          <button class="btn" type="submit">질문</button>
+        </form>
+      </section>
     </section>
 
     <!-- ============ RESULT ============ -->
     <section id="screen-result" class="screen" aria-label="결과">
       <div class="screen-head"><h2>결과</h2></div>
       <div id="result-card" class="result-card"></div>
+
+      <section class="ai-panel" id="ai-commentary" aria-label="AI 레이스 코멘터리">
+        <div class="ai-panel-head">
+          <h3>🤖 AI 레이스 코멘터리 <span class="ai-badge">DEMO · mock</span></h3>
+          <button id="ai-commentary-btn" class="btn small">코멘터리 생성</button>
+        </div>
+        <pre id="ai-commentary-out" class="ai-out" aria-live="polite"></pre>
+      </section>
+
       <div class="lb-head"><h3>코스 리더보드</h3></div>
       <ol id="leaderboard" class="leaderboard"></ol>
       <div class="ctrl-btns center">

@@ -17,6 +17,7 @@ import {
   createRace, tick, snapshot, scoreTransition, computeStandings,
   kmhToMs, msToKmh, tierFor, levelFor, buildGhosts, gapBetween,
 } from './race-engine.js';
+import { AI_ENDPOINT } from './ai/config.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 let pass = 0, fail = 0;
@@ -180,6 +181,45 @@ console.log('\n[4] race-engine unit tests');
   tick(r, 0.1, 28);
   const s = snapshot(r);
   ok('snapshot has playerRank + gaps + elapsed', 'playerRank' in s && 'gapAheadM' in s && 'gapBehindM' in s && 'elapsed' in s);
+}
+
+// -------------------------------------------------------------------------
+console.log('\n[5] AI layer — syntax + security');
+
+// 5a) node --check on every AI + server source file
+for (const f of ['ai/config.js', 'ai/ai.js', 'ai/ai-ui.js', 'server/index.mjs']) {
+  try {
+    execFileSync(process.execPath, ['--check', join(ROOT, f)], { stdio: 'pipe' });
+    ok(`node --check ${f}`, true);
+  } catch (e) {
+    ok(`node --check ${f}`, false, String(e.stderr || e.message).split('\n')[0]);
+  }
+}
+
+// 5b) demo must ship with AI_ENDPOINT empty (mock provider active, no backend)
+ok('AI_ENDPOINT is empty (demo = mock)', AI_ENDPOINT === '', `got ${JSON.stringify(AI_ENDPOINT)}`);
+
+// 5c) no real Anthropic API key committed anywhere in the AI/server surface.
+//     Regex is assembled from parts so THIS scanner never contains a literal key.
+{
+  const KEY_RE = new RegExp('sk-' + 'ant-[A-Za-z0-9_-]{20,}');
+  const scanFiles = [
+    'ai/config.js', 'ai/ai.js', 'ai/ai-ui.js',
+    'server/index.mjs', 'server/package.json', 'server/.env.example', 'server/README.md',
+    'README.md', 'README.ko.md',
+  ];
+  const leaked = [];
+  for (const f of scanFiles) {
+    try {
+      const t = await readFile(join(ROOT, f), 'utf8');
+      if (KEY_RE.test(t)) leaked.push(f);
+    } catch (e) { /* file may be absent; skip */ }
+  }
+  ok('no real API key format present in source', leaked.length === 0, leaked.join(', '));
+  // .env (the real one) must never be committed / present in the working tree
+  let envPresent = false;
+  try { await readFile(join(ROOT, 'server', '.env'), 'utf8'); envPresent = true; } catch (e) { /* good */ }
+  ok('server/.env is not committed', !envPresent, envPresent ? 'server/.env exists — do not commit it' : '');
 }
 
 // -------------------------------------------------------------------------

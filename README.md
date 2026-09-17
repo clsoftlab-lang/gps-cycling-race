@@ -72,6 +72,39 @@ All rider names, courses, and leaderboard entries are **fictional demo data**.
 - `race-engine.js` (sim math) · `render.js` (drawing) · `app.js` (app) · `data/courses.json` (course + ghost data).
 - **CI:** `node check.mjs` — validates JSON, runs `node --check` on all JS, verifies required containers in `index.html`, and **unit-tests `race-engine.js`** (positions, gaps, ranks, finish, scoring, determinism) — 40+ assertions.
 
+## 🤖 AI 기능 (API 연동)
+
+GhostPace ships a **secure, pluggable AI layer** with three features:
+
+1. **AI 라이딩 코치 챗봇** (race screen) — pacing & training advice grounded in the
+   chosen course's segment profile and your own best time / tier, plus live gap
+   coaching mid-race.
+2. **레이스 결과 분석/코멘터리** (result screen) — narrates a finished race from its
+   splits, final rank, gaps, and points breakdown.
+3. **코스 추천** (course-select screen) — suggests a course by your goal & level.
+
+**Demo = mock (default).** With `ai/config.js` → `AI_ENDPOINT = ""`, all three run
+against a **deterministic Korean MockProvider** (`ai/ai.js`) built from the app's
+own courses / race data / best times. No network, no account, no key.
+
+**Enable real Claude** via the backend proxy in [`server/`](server/):
+
+```bash
+cd server
+cp .env.example .env      # paste your key into .env
+npm install && npm run start:env
+```
+
+then set `ai/config.js` → `AI_ENDPOINT = "http://localhost:8787/api/ai"` and
+reload. The proxy calls Claude (model **`claude-opus-5`**, adaptive thinking,
+streamed) and pipes the reply back token-by-token.
+
+> **🔒 Keys are server-side ONLY.** The `ANTHROPIC_API_KEY` lives exclusively in
+> `server/.env` (`process.env.ANTHROPIC_API_KEY`) and is **never** placed in the
+> browser, in `ai/config.js`, or anywhere in the repo. `.env` is git-ignored, and
+> `node check.mjs` scans the source for a real key format and fails if one is ever
+> committed.
+
 ## Contributors
 
 - **Dr. Lee Il-guk (이일국)** — concept, direction

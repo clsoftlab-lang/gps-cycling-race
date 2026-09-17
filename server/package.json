@@ -1,0 +1,20 @@
+{
+  "name": "ghostpace-ai-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "GhostPace AI proxy — server-side Claude backend that keeps ANTHROPIC_API_KEY off the browser.",
+  "author": "CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs",
+    "start:env": "node --env-file=.env index.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0"
+  }
+}

@@ -72,6 +72,37 @@ python -m http.server 8993
 - `race-engine.js`(시뮬 계산) · `render.js`(그리기) · `app.js`(앱) · `data/courses.json`(코스·고스트 데이터).
 - **CI:** `node check.mjs` — JSON 검증, 전 JS `node --check`, `index.html` 필수 컨테이너 확인, 그리고 **`race-engine.js` 단위 테스트**(위치·간격·순위·완주·점수·결정론) 40+ 검증.
 
+## 🤖 AI 기능 (API 연동)
+
+GhostPace에는 **안전하고 교체 가능한 AI 레이어**가 포함되어 있으며, 세 가지 기능을 제공합니다:
+
+1. **AI 라이딩 코치 챗봇** (레이스 화면) — 선택한 코스의 구간 프로필과 내 베스트·티어를
+   근거로 페이싱·훈련 조언을 하고, 레이스 중에는 실시간 간격 코칭도 제공합니다.
+2. **레이스 결과 분석/코멘터리** (결과 화면) — 완주한 레이스의 스플릿·최종 순위·간격·
+   포인트 내역을 바탕으로 중계를 생성합니다.
+3. **코스 추천** (코스 선택 화면) — 목표와 레벨에 맞는 코스를 추천합니다.
+
+**데모 = mock (기본값).** `ai/config.js` → `AI_ENDPOINT = ""` 상태에서는 세 기능 모두
+앱의 코스·레이스·베스트 데이터로 구동되는 **결정론적 한국어 MockProvider**(`ai/ai.js`)로
+동작합니다. 네트워크·계정·키가 필요 없습니다.
+
+**실 Claude 연동**은 [`server/`](server/) 백엔드 프록시로 켭니다:
+
+```bash
+cd server
+cp .env.example .env      # .env에 키를 붙여넣기
+npm install && npm run start:env
+```
+
+그 다음 `ai/config.js` → `AI_ENDPOINT = "http://localhost:8787/api/ai"`로 설정하고
+새로고침하세요. 프록시가 Claude(모델 **`claude-opus-5`**, adaptive thinking, 스트리밍)를
+호출해 응답을 토큰 단위로 되돌려줍니다.
+
+> **🔒 키는 서버 사이드에만 둡니다.** `ANTHROPIC_API_KEY`는 오직 `server/.env`
+> (`process.env.ANTHROPIC_API_KEY`)에만 존재하며, 브라우저·`ai/config.js`·저장소 어디에도
+> **절대** 넣지 않습니다. `.env`는 git-ignore 되고, `node check.mjs`가 소스에서 실제 키
+> 형식을 검사해 커밋되면 실패시킵니다.
+
 ## 기여자
 
 - **이일국 (Dr. Lee Il-guk)** — 기획·방향

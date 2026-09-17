@@ -1,5 +1,10 @@
-# dependencies (none required — no-build static app)
+# dependencies (frontend needs none; server/ uses @anthropic-ai/sdk)
 node_modules/
+
+# secrets — server-side API key lives here and must NEVER be committed
+.env
+server/.env
+*.env.local
 
 # logs & os cruft
 *.log

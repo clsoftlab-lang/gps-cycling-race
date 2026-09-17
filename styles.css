@@ -189,6 +189,41 @@ main { max-width: var(--maxw); margin: 0 auto; padding: 16px; }
 .pf-bests li { display: flex; justify-content: space-between; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
 .pf-bests b { color: var(--accent2); }
 
+/* ---------- AI panels ---------- */
+.ai-panel {
+  margin: 16px 0; background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow);
+  border-left: 5px solid var(--accent2);
+}
+.ai-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.ai-panel-head h3 { font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ai-badge {
+  font-size: 10px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase;
+  color: var(--accent2); background: color-mix(in srgb, var(--accent2) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent2) 40%, transparent);
+  padding: 2px 8px; border-radius: 999px;
+}
+.ai-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.ai-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.ai-field.grow { flex: 1; min-width: 160px; }
+.ai-field select, .ai-field input, input.ai-field {
+  border: 1px solid var(--line); background: var(--card2); color: var(--ink);
+  border-radius: 10px; padding: 10px 12px; font-size: 14px; font-weight: 600;
+}
+input.ai-field { flex: 1; min-width: 160px; }
+.ai-out {
+  margin: 12px 0 0; min-height: 24px; max-height: 320px; overflow: auto;
+  white-space: pre-wrap; word-break: break-word;
+  background: var(--card2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px; font: inherit; font-size: 13.5px; line-height: 1.55; color: var(--ink);
+}
+.ai-out:empty { display: none; }
+.ai-out.busy { border-color: var(--accent2); position: relative; }
+.ai-out.busy::after {
+  content: '▍'; animation: ai-blink 1s steps(2) infinite; color: var(--accent2); font-weight: 800;
+}
+@keyframes ai-blink { 50% { opacity: 0; } }
+
 /* ---------- footer ---------- */
 .foot { max-width: var(--maxw); margin: 24px auto 40px; padding: 0 16px; text-align: center; font-size: 12px; color: var(--muted); }
 .foot b { color: var(--accent); }

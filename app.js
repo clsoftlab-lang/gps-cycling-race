@@ -10,6 +10,7 @@ import {
   msToKmh, tierFor, levelFor, kmhToMs,
 } from './race-engine.js';
 import { buildTrack, drawRiders, drawStandings } from './render.js';
+import { initAiUi } from './ai/ai-ui.js';
 
 const STORE_KEY = 'ghostpace.v1';
 const $ = (s, r = document) => r.querySelector(s);
@@ -338,7 +339,18 @@ function finishRace() {
   if (course.difficultyEn === 'Hard') addBadge('⛰ 하드코스 완주');
   saveStore(store);
 
-  renderResult({ course, time, total, finishBonus, completion, sessionPoints: current.sessionPoints, rank: race.player.rank, isBest, lb });
+  const resultData = {
+    course, time, total, finishBonus, completion,
+    sessionPoints: current.sessionPoints, rank: race.player.rank,
+    ridersCount: race.riders.length, isBest, lb,
+    standings: (race.standings || race.riders).map((r) => ({
+      name: r.name, rank: r.rank, me: r.id === 'player',
+      gapAheadM: r.id === 'player' && race.gapAhead ? race.gapAhead.distanceM : null,
+    })),
+    samples: current.recording.slice(),
+  };
+  current.lastResult = resultData; // consumed by the AI commentary feature
+  renderResult(resultData);
   go('result');
 }
 
@@ -484,6 +496,13 @@ async function boot() {
     return;
   }
   renderCourses();
+  initAiUi({
+    getCourses: () => COURSES,
+    getStore: () => store,
+    getCurrent: () => current,
+    tierFor,
+    fmtTime,
+  });
   go('courses');
 }
 
