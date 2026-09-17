@@ -87,3 +87,7 @@ All rider names, courses, and leaderboard entries are **fictional demo data**.
 ---
 
 *Not an official Anthropic product.*
+
+## 🎓 Idea origin
+
+The seed idea for this project came from the **entrepreneurship class taught by Dr. Lee Il-guk (이일국) at Yongin University (용인대학교)**. The students in that class produced startup ideas of remarkable, standout creativity — this project is one of those exceptional ideas, finally brought to life as a working service. Built with deep admiration and gratitude for those students' imagination. *(No student personal information is included; only the idea itself was used, implemented clean-room.)*
